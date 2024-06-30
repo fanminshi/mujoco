@@ -29,6 +29,7 @@
 
 #include "tinyxml2.h"
 
+#include <mujoco/mujoco.h>
 #include <mujoco/mjmodel.h>
 #include <mujoco/mjplugin.h>
 #include <mujoco/mjtnum.h>
@@ -862,7 +863,7 @@ void mjXReader::Parse(XMLElement* root) {
   readingdefaults = true;
   for (XMLElement* section = FirstChildElement(root, "default"); section;
        section = NextSiblingElement(section, "default")) {
-    Default(section, -1);
+    Default(section, nullptr);
   }
   readingdefaults = false;
 
@@ -1288,15 +1289,12 @@ void mjXReader::Statistic(XMLElement* section) {
 
 // flex element parser
 void mjXReader::OneFlex(XMLElement* elem, mjsFlex* pflex) {
-  string text, name, classname, material;
+  string text, name, material;
   int n;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pflex->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "classname", classname)) {
-    mjs_setString(pflex->classname, classname.c_str());
   }
   if (ReadAttrTxt(elem, "material", material)) {
     mjs_setString(pflex->material, material.c_str());
@@ -1363,14 +1361,11 @@ void mjXReader::OneFlex(XMLElement* elem, mjsFlex* pflex) {
 // mesh element parser
 void mjXReader::OneMesh(XMLElement* elem, mjsMesh* pmesh) {
   int n;
-  string text, name, classname, content_type;
+  string text, name, content_type;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pmesh->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(pmesh->classname, classname.c_str());
   }
   if (ReadAttrTxt(elem, "content_type", content_type)) {
     mjs_setString(pmesh->content_type, content_type.c_str());
@@ -1525,15 +1520,12 @@ void mjXReader::OneSkin(XMLElement* elem, mjsSkin* pskin) {
 
 // material element parser
 void mjXReader::OneMaterial(XMLElement* elem, mjsMaterial* pmat) {
-  string text, name, classname, texture;
+  string text, name, texture;
   int n;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pmat->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(pmat->classname, classname.c_str());
   }
   if (ReadAttrTxt(elem, "texture", texture)) {
     mjs_setString(pmat->texture, texture.c_str());
@@ -1558,16 +1550,13 @@ void mjXReader::OneMaterial(XMLElement* elem, mjsMaterial* pmat) {
 
 // joint element parser
 void mjXReader::OneJoint(XMLElement* elem, mjsJoint* pjoint) {
-  string text, name, classname;
+  string text, name;
   std::vector<double> userdata;
   int n;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pjoint->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(pjoint->classname, classname.c_str());
   }
   if (MapValue(elem, "type", &n, joint_map, joint_sz)) {
     pjoint->type = (mjtJoint)n;
@@ -1608,7 +1597,7 @@ void mjXReader::OneJoint(XMLElement* elem, mjsJoint* pjoint) {
 
 // geom element parser
 void mjXReader::OneGeom(XMLElement* elem, mjsGeom* pgeom) {
-  string text, name, classname;
+  string text, name;
   std::vector<double> userdata;
   std::string hfieldname, meshname, material;
   int n;
@@ -1616,9 +1605,6 @@ void mjXReader::OneGeom(XMLElement* elem, mjsGeom* pgeom) {
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pgeom->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(pgeom->classname, classname.c_str());
   }
   if (MapValue(elem, "type", &n, geom_map, mjNGEOMTYPES)) {
     pgeom->type = (mjtGeom)n;
@@ -1684,16 +1670,13 @@ void mjXReader::OneGeom(XMLElement* elem, mjsGeom* pgeom) {
 // site element parser
 void mjXReader::OneSite(XMLElement* elem, mjsSite* site) {
   int n;
-  string text, name, classname;
+  string text, name;
   std::vector<double> userdata;
   std::string material;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(site->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(site->classname, classname.c_str());
   }
   if (MapValue(elem, "type", &n, geom_map, mjNGEOMTYPES)) {
     site->type = (mjtGeom)n;
@@ -1721,15 +1704,12 @@ void mjXReader::OneSite(XMLElement* elem, mjsSite* site) {
 // camera element parser
 void mjXReader::OneCamera(XMLElement* elem, mjsCamera* pcam) {
   int n;
-  string text, name, classname, targetbody;
+  string text, name, targetbody;
   std::vector<double> userdata;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pcam->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(pcam->classname, classname.c_str());
   }
   if (ReadAttrTxt(elem, "target", targetbody)) {
     mjs_setString(pcam->targetbody, targetbody.c_str());
@@ -1779,14 +1759,11 @@ void mjXReader::OneCamera(XMLElement* elem, mjsCamera* pcam) {
 // light element parser
 void mjXReader::OneLight(XMLElement* elem, mjsLight* plight) {
   int n;
-  string text, name, classname, targetbody;
+  string text, name, targetbody;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(plight->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(plight->classname, classname.c_str());
   }
   if (ReadAttrTxt(elem, "target", targetbody)) {
     mjs_setString(plight->targetbody, targetbody.c_str());
@@ -1821,13 +1798,10 @@ void mjXReader::OneLight(XMLElement* elem, mjsLight* plight) {
 
 // pair element parser
 void mjXReader::OnePair(XMLElement* elem, mjsPair* ppair) {
-  string text, name, classname, geomname1, geomname2;
+  string text, name, geomname1, geomname2;
 
   // regular only
   if (!readingdefaults) {
-    if (ReadAttrTxt(elem, "class", classname)) {
-      mjs_setString(ppair->classname, classname.c_str());
-    }
     if (ReadAttrTxt(elem, "geom1", geomname1)) {
       mjs_setString(ppair->geomname1, geomname1.c_str());
     }
@@ -1857,7 +1831,7 @@ void mjXReader::OnePair(XMLElement* elem, mjsPair* ppair) {
 // equality element parser
 void mjXReader::OneEquality(XMLElement* elem, mjsEquality* pequality) {
   int n;
-  string text, name1, name2, name, classname;
+  string text, name1, name2, name;
 
   // read type (bad keywords already detected by schema)
   text = elem->Value();
@@ -1868,9 +1842,6 @@ void mjXReader::OneEquality(XMLElement* elem, mjsEquality* pequality) {
     if (ReadAttrTxt(elem, "name", name)) {
       mjs_setString(pequality->name, name.c_str());
     }
-    if (ReadAttrTxt(elem, "class", classname)) {
-      mjs_setString(pequality->classname, classname.c_str());
-    };
 
     switch (pequality->type) {
     case mjEQ_CONNECT:
@@ -1934,15 +1905,12 @@ void mjXReader::OneEquality(XMLElement* elem, mjsEquality* pequality) {
 
 // tendon element parser
 void mjXReader::OneTendon(XMLElement* elem, mjsTendon* pten) {
-  string text, name, classname, material;
+  string text, name, material;
   std::vector<double> userdata;
 
   // read attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pten->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(pten->classname, classname.c_str());
   }
   ReadAttrInt(elem, "group", &pten->group);
   if (ReadAttrTxt(elem, "material", material)) {
@@ -1978,14 +1946,11 @@ void mjXReader::OneTendon(XMLElement* elem, mjsTendon* pten) {
 
 // actuator element parser
 void mjXReader::OneActuator(XMLElement* elem, mjsActuator* pact) {
-  string text, type, name, classname, target, slidersite, refsite;
+  string text, type, name, target, slidersite, refsite;
 
   // common attributes
   if (ReadAttrTxt(elem, "name", name)) {
     mjs_setString(pact->name, name.c_str());
-  }
-  if (ReadAttrTxt(elem, "class", classname)) {
-    mjs_setString(pact->classname, classname.c_str());
   }
   ReadAttrInt(elem, "group", &pact->group);
   MapValue(elem, "ctrllimited", &pact->ctrllimited, TFAuto_map, 3);
@@ -2667,31 +2632,28 @@ void mjXReader::OnePlugin(XMLElement* elem, mjsPlugin* plugin) {
 //------------------ MJCF-specific sections --------------------------------------------------------
 
 // default section parser
-void mjXReader::Default(XMLElement* section, int parentid) {
+void mjXReader::Default(XMLElement* section, const mjsDefault* def) {
   XMLElement* elem;
   string text, name;
-  mjsDefault* def;
-  int thisid;
 
-  // create new default, except at top level (already added in mjCModel ctor)
+  // create new default, except at top level (already added in mjCModel constructor)
   text.clear();
   ReadAttrTxt(section, "class", text);
   if (text.empty()) {
-    if (parentid>=0) {
+    if (def) {
       throw mjXError(section, "empty class name");
-    } else {
-      text = "main";
     }
   }
-  if (parentid>=0) {
-    def = mjs_addDefault(model, text.c_str(), parentid, &thisid);
+  if (def) {
+    def = mjs_addDefault(model, text.c_str(), def);
     if (!def) {
       throw mjXError(section, "repeated default class name");
     }
   } else {
-    thisid = 0;
     def = mjs_getSpecDefault(model);
-    mjs_setString(def->name, text.c_str());
+    if (!text.empty() && text != "main") {
+      throw mjXError(section, "top-level default class 'main' cannot be renamed");
+    }
   }
 
   // iterate over elements other than nested defaults
@@ -2755,7 +2717,7 @@ void mjXReader::Default(XMLElement* section, int parentid) {
 
     // read default
     if (name=="default") {
-      Default(elem, thisid);
+      Default(elem, def);
     }
 
     // advance
@@ -3496,6 +3458,9 @@ void mjXReader::Body(XMLElement* section, mjsBody* pbody, mjsFrame* frame) {
       mjsBody* pchild = mjs_addBody(pbody, childdef);
       mjs_setString(pchild->info,
                     std::string("line " + std::to_string(elem->GetLineNum())).c_str());
+
+      // set default from class or childclass
+      mjs_setDefault(pchild->element, childdef ? childdef : def);
 
       // read attributes
       std::string name, childclass;

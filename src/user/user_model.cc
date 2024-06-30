@@ -36,6 +36,7 @@
 #include "cc/array_safety.h"
 #include "engine/engine_forward.h"
 #include "engine/engine_io.h"
+#include "engine/engine_name.h"
 #include "engine/engine_plugin.h"
 #include "engine/engine_setconst.h"
 #include "engine/engine_support.h"
@@ -97,6 +98,7 @@ mjCModel::mjCModel() {
 
   //------------------------ master default set
   defaults_.push_back(new mjCDef);
+  defaults_.back()->name = "main";
 
   // world body
   mjCBody* world = new mjCBody(this);
@@ -740,7 +742,9 @@ mjCDef* mjCModel::FindDefault(string name) {
 
 
 // add default class to array
-mjCDef* mjCModel::AddDefault(string name, int parentid) {
+mjCDef* mjCModel::AddDefault(string name, mjCDef* parent) {
+  int parentid = parent ? parent->id : 0;
+
   // check for repeated name
   int thisid = (int)defaults_.size();
   for (int i=0; i<thisid; i++) {
@@ -752,6 +756,7 @@ mjCDef* mjCModel::AddDefault(string name, int parentid) {
   // create new object
   mjCDef* def = new mjCDef;
   defaults_.push_back(def);
+  def->id = thisid;
 
   // initialize contents
   if (parentid>=0 && parentid<thisid) {

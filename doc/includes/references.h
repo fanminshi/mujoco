@@ -179,8 +179,8 @@ struct mjData_ {
   //-------------------- end of info header
 
   // buffers
-  void*   buffer;            // main buffer; all pointers point in it                (nbuffer bytes)
-  void*   arena;             // arena+stack buffer                     (nstack*sizeof(mjtNum) bytes)
+  void*   buffer;            // main buffer; all pointers point in it            (nbuffer bytes)
+  void*   arena;             // arena+stack buffer                               (narena bytes)
 
   //-------------------- main inputs and outputs of the computation
 
@@ -1743,7 +1743,6 @@ typedef struct mjsFrame_ {         // frame specification
 typedef struct mjsJoint_ {         // joint specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
   mjtJoint type;                   // joint type
 
   // kinematics
@@ -1781,7 +1780,6 @@ typedef struct mjsJoint_ {         // joint specification
 typedef struct mjsGeom_ {          // geom specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // classname
   mjtGeom type;                    // geom type
 
   // frame, size
@@ -1828,7 +1826,6 @@ typedef struct mjsGeom_ {          // geom specification
 typedef struct mjsSite_ {          // site specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
 
   // frame, size
   double pos[3];                   // position
@@ -1850,7 +1847,6 @@ typedef struct mjsSite_ {          // site specification
 typedef struct mjsCamera_ {        // camera specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
 
   // extrinsics
   double pos[3];                   // position
@@ -1878,7 +1874,6 @@ typedef struct mjsCamera_ {        // camera specification
 typedef struct mjsLight_ {         // light specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
 
   // frame
   double pos[3];                   // position
@@ -1904,7 +1899,6 @@ typedef struct mjsLight_ {         // light specification
 typedef struct mjsFlex_ {          // flex specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
 
   // contact properties
   int contype;                     // contact type
@@ -1943,7 +1937,6 @@ typedef struct mjsFlex_ {          // flex specification
 typedef struct mjsMesh_ {          // mesh specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
   mjString* content_type;          // content type of file
   mjString* file;                  // mesh file
   double refpos[3];                // reference position
@@ -1974,7 +1967,6 @@ typedef struct mjsHField_ {        // height field specification
 typedef struct mjsSkin_ {          // skin specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
   mjString* file;                  // skin file
   mjString* material;              // name of material used for rendering
   float rgba[4];                   // rgba when material is omitted
@@ -1999,7 +1991,6 @@ typedef struct mjsSkin_ {          // skin specification
 typedef struct mjsTexture_ {       // texture specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
   mjtTexture type;                 // texture type
 
   // method 1: builtin
@@ -2031,7 +2022,6 @@ typedef struct mjsTexture_ {       // texture specification
 typedef struct mjsMaterial_ {      // material specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
   mjString* texture;               // name of texture (empty: none)
   mjtByte texuniform;              // make texture cube uniform
   float texrepeat[2];              // texture repetition for 2D mapping
@@ -2047,7 +2037,6 @@ typedef struct mjsMaterial_ {      // material specification
 typedef struct mjsPair_ {          // pair specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
   mjString* geomname1;             // name of geom 1
   mjString* geomname2;             // name of geom 2
 
@@ -2071,7 +2060,6 @@ typedef struct mjsExclude_ {       // exclude specification
 typedef struct mjsEquality_ {      // equality specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
   mjtEq type;                      // constraint type
   double data[mjNEQDATA];          // type-dependent data
   mjtByte active;                  // is equality initially active
@@ -2084,7 +2072,6 @@ typedef struct mjsEquality_ {      // equality specification
 typedef struct mjsTendon_ {        // tendon specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
 
   // stiffness, damping, friction
   double stiffness;                // stiffness coefficient
@@ -2118,7 +2105,6 @@ typedef struct mjsWrap_ {          // wrapping object specification
 typedef struct mjsActuator_ {      // actuator specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
 
   // gain, bias
   mjtGain gaintype;                // gain type
@@ -2160,7 +2146,6 @@ typedef struct mjsActuator_ {      // actuator specification
 typedef struct mjsSensor_ {        // sensor specification
   mjsElement* element;             // element type
   mjString* name;                  // name
-  mjString* classname;             // class name
 
   // sensor definition
   mjtSensor type;                  // type of sensor
@@ -2286,6 +2271,11 @@ typedef enum mjtItem_ {           // UI item type
 
   mjNITEM                         // number of item types
 } mjtItem;
+typedef enum mjtSection_ {        // UI section state
+  mjSECT_CLOSED = 0,              // closed state (regular section)
+  mjSECT_OPEN,                    // open state (regular section)
+  mjSECT_FIXED                    // fixed section: always open, no title
+} mjtSection;
 struct mjuiState_ {               // mouse and keyboard state
   // constants set by user
   int nrect;                      // number of rectangles used
@@ -2333,6 +2323,8 @@ struct mjuiThemeSpacing_ {        // UI visualization theme spacing
   int scroll;                     // scrollbar width
   int label;                      // label width
   int section;                    // section gap
+  int cornersect;                 // corner radius for section
+  int cornersep;                  // corner radius for separator
   int itemside;                   // item side gap
   int itemmid;                    // item middle gap
   int itemver;                    // item vertical gap
@@ -2346,9 +2338,14 @@ struct mjuiThemeColor_ {          // UI visualization theme color
   float master[3];                // master background
   float thumb[3];                 // scrollbar thumb
   float secttitle[3];             // section title
+  float secttitle2[3];            // section title: bottom color
+  float secttitlecheck[3];        // section title with checkbox
+  float secttitlecheck2[3];       // section title with checkbox: bottom color
   float sectfont[3];              // section font
   float sectsymbol[3];            // section symbol
   float sectpane[3];              // section pane
+  float separator[3];             // separator title
+  float separator2[3];            // separator title: bottom color
   float shortcut[3];              // shortcut background
   float fontactive[3];            // font active
   float fontinactive[3];          // font inactive
@@ -2398,6 +2395,7 @@ struct mjuiItem_ {                // UI item
   void *pdata;                    // data pointer (type-specific)
   int sectionid;                  // id of section containing item
   int itemid;                     // id of item within section
+  int userid;                     // user-supplied id (for event handling)
 
   // type-specific properties
   union {
@@ -2409,20 +2407,23 @@ struct mjuiItem_ {                // UI item
 
   // internal
   mjrRect rect;                   // rectangle occupied by item
+  int skip;                       // item skipped due to closed separator
 };
 typedef struct mjuiItem_ mjuiItem;
 struct mjuiSection_ {             // UI section
   // properties
   char name[mjMAXUINAME];         // name
-  int state;                      // 0: closed, 1: open
+  int state;                      // section state (mjtSection)
   int modifier;                   // 0: none, 1: control, 2: shift; 4: alt
   int shortcut;                   // shortcut key; 0: undefined
+  int checkbox;                   // 0: none, 1: hidden, 2: unchecked, 2: checked
   int nitem;                      // number of items in use
   mjuiItem item[mjMAXUIITEM];     // preallocated array of items
 
   // internal
   mjrRect rtitle;                 // rectangle occupied by title
   mjrRect rcontent;               // rectangle occupied by content
+  int lastclick;                  // last mouse click over this section
 };
 typedef struct mjuiSection_ mjuiSection;
 struct mjUI_ {                    // entire UI
@@ -2441,10 +2442,12 @@ struct mjUI_ {                    // entire UI
   int maxheight;                  // height when all sections open
   int scroll;                     // scroll from top of UI
 
-  // mouse focus
+  // mouse focus and count
   int mousesect;                  // 0: none, -1: scroll, otherwise 1+section
   int mouseitem;                  // item within section
   int mousehelp;                  // help button down: print shortcuts
+  int mouseclicks;                // number of mouse clicks over UI
+  int mousesectcheck;             // 0: none, otherwise 1+section
 
   // keyboard focus and edit
   int editsect;                   // 0: none, otherwise 1+section
@@ -2465,6 +2468,7 @@ struct mjuiDef_ {                 // table passed to mjui_add()
   int state;                      // state
   void* pdata;                    // pointer to data
   char other[mjMAXUITEXT];        // string with type-specific properties
+  int otherint;                   // int with type-specific properties
 };
 typedef struct mjuiDef_ mjuiDef;
 typedef enum mjtCatBit_ {         // bitflags for mjvGeom category
@@ -3523,7 +3527,7 @@ mjsText* mjs_addText(mjSpec* s);
 mjsTuple* mjs_addTuple(mjSpec* s);
 mjsKey* mjs_addKey(mjSpec* s);
 mjsPlugin* mjs_addPlugin(mjSpec* s);
-mjsDefault* mjs_addDefault(mjSpec* s, const char* classname, int parentid, int* id);
+mjsDefault* mjs_addDefault(mjSpec* s, const char* classname, const mjsDefault* parent);
 mjsMesh* mjs_addMesh(mjSpec* s, mjsDefault* def);
 mjsHField* mjs_addHField(mjSpec* s);
 mjsSkin* mjs_addSkin(mjSpec* s);
